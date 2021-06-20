@@ -1,5 +1,6 @@
 
 import random
+from multiprocessing import Process, Queue
 
 def BK(R, P, X, G, max_sets):
     if len(P) == 0 and len(X) == 0:
@@ -17,17 +18,20 @@ def BKPivot(R, P, X, G, max_sets):
     if len(P) == 0 and len(X) == 0:
         max_sets.append(R)
     
-    u = random.sample(P.union(X), 1)[0]
-    N_u = set(G[u])
-    for v in list(P.difference(N_u)):
-        N_v = set(G[v])
-        max_sets = BK(R.union(set({v})), P.intersection(N_v), X.intersection(N_v), G, max_sets)
-        P.remove(v)
-        X.add(v)
+    tmp = P.union(X)
+    if len(tmp) > 0:
+        u = random.sample(tmp, 1)[0]
+        N_u = set(G[u])
+        for v in list(P.difference(N_u)):
+            N_v = set(G[v])
+            max_sets = BKPivot(R.union(set({v})), P.intersection(N_v), X.intersection(N_v), G, max_sets)
+            P.remove(v)
+            X.add(v)
         
     return max_sets
 
-def BKPivotByDegree(R, P, X, G, max_sets, rs, vs_by_degree):
+def BKOrderByDegree(R, P, X, G, max_sets, rs):
+    vs_by_degree = sorted(G, key=lambda k: len(G[k]), reverse=True)
     if len(P) == 0 and len(X) == 0:
         max_sets.append(R)
         
@@ -43,8 +47,46 @@ def BKPivotByDegree(R, P, X, G, max_sets, rs, vs_by_degree):
     N_u = set(G[u])
     for v in list(P.difference(N_u)):
         N_v = set(G[v])
-        max_sets = BK(R.union(set({v})), P.intersection(N_v), X.intersection(N_v), G, max_sets)
+        max_sets = BKPivot(R.union(set({v})), P.intersection(N_v), X.intersection(N_v), G, max_sets)
         P.remove(v)
         X.add(v)
         
+    return max_sets
+
+def BKWorker(queue, R, P, X, G, max_sets):
+    if len(P) == 0 and len(X) == 0:
+        max_sets.append(R)
+    
+    for v in list(P):
+        N_v = set(G[v])
+        max_sets = BKPivot(R.union(set({v})), P.intersection(N_v), X.intersection(N_v), G, max_sets)
+        P.remove(v)
+        X.add(v)
+        
+    queue.put(max_sets)
+
+def BKMultiProcess(R, P, X, G, max_sets):
+    q = Queue()
+    jobs = []
+    rets = []
+
+    for v in list(P):
+        N_v = set(G[v])
+        if len(jobs) < 100:
+            p = Process(target=BKWorker, 
+                args=(q, R.union(set({v})), P.intersection(N_v), 
+                      X.intersection(N_v), G, max_sets,))
+            jobs.append(p)
+            p.start()
+        else:
+            max_sets = BK(R.union(set({v})), P.intersection(N_v), X.intersection(N_v), G, max_sets)
+        P.remove(v)
+        X.add(v)
+
+    for j in jobs:
+        ret = q.get()
+        max_sets.extend(ret)
+    for j in jobs:
+        j.join()
+
     return max_sets

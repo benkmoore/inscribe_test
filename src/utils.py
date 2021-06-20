@@ -1,4 +1,5 @@
 import os
+import numpy as np
 from bisect import bisect_right, bisect_left
 
 from src.rectangle import UUIDRectangle
@@ -23,7 +24,6 @@ def GetIntersectingRectangles(curr, rectangles):
     rectangles = IntersectingRectanglesByAxis(curr, rectangles, 'y', 'height')
     
     return rectangles
-
 
 ##-------------- Data Utils ---------------##
 def CreateRectanglesFromData():

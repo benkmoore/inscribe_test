@@ -1,8 +1,10 @@
 
-from src.utils import BuildGraph
-from src.bron_kerbosch import BK, BKPivot, BKPivotByDegree
+from src.utils import *
+from src.bron_kerbosch import BK, BKPivot, BKOrderByDegree, BKMultiProcess
 
-def FindMaximalSets(rectangles, pivot = False, by_degree = False):
+
+##-------------- BK search algos ---------------##
+def FindMaximalSets(rectangles, pivot = False, by_degree = False, multi_process = False):
     R = set()
     X = set()
     G = BuildGraph(rectangles)
@@ -12,7 +14,8 @@ def FindMaximalSets(rectangles, pivot = False, by_degree = False):
     if pivot:
         return BKPivot(R, P, X, G, max_sets)
     elif by_degree:
-        vs_by_degree = sorted(G, key=lambda k: len(G[k]))
-        return BKPivotByDegree(R, P, X, G, max_sets, rectangles, vs_by_degree)
+        return BKOrderByDegree(R, P, X, G, max_sets, rectangles)
+    elif multi_process:
+        return BKMultiProcess(R, P, X, G, max_sets)
     else:
         return BK(R, P, X, G, max_sets)

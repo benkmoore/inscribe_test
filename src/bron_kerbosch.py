@@ -66,13 +66,14 @@ def BKWorker(queue, R, P, X, G, max_sets):
     queue.put(max_sets)
 
 def BKMultiProcess(R, P, X, G, max_sets):
+    max_processes = 100
     q = Queue()
     jobs = []
     rets = []
 
     for v in list(P):
         N_v = set(G[v])
-        if len(jobs) < 100:
+        if len(jobs) < max_processes:
             p = Process(target=BKWorker, 
                 args=(q, R.union(set({v})), P.intersection(N_v), 
                       X.intersection(N_v), G, max_sets,))

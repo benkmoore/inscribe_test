@@ -3,7 +3,6 @@ from src.utils import *
 from src.bron_kerbosch import BK, BKPivot, BKOrderByDegree, BKMultiProcess
 
 
-##-------------- BK search algos ---------------##
 def FindMaximalSets(rectangles, pivot = False, by_degree = False, multi_process = False):
     R = set()
     X = set()

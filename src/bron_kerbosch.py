@@ -2,6 +2,7 @@
 import random
 from multiprocessing import Process, Queue
 
+
 def BK(R, P, X, G, max_sets):
     if len(P) == 0 and len(X) == 0:
         max_sets.append(R)
